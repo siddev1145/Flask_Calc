@@ -1,4 +1,6 @@
 from flask import Flask, request, jsonify
+import math
+
 
 app = Flask(__name__)
 
@@ -10,8 +12,8 @@ def add():
         num2 = float(data["num2"])
         result = num1 + num2
         return jsonify({"operation": "addition", "result": result}), 200
-    except Exception:
-        return jsonify({"error": "Invalid input. Please provide valid JSON with 'num1' and 'num2'."}), 400
+    except (KeyError, TypeError, ValueError):
+        return jsonify({"error": "Invalid input. Please provide 'num1' and 'num2' as numbers."}), 400
 
 
 @app.route("/subtract", methods=["POST"])
@@ -22,57 +24,91 @@ def subtract():
         num2 = float(data["num2"])
         result = num1 - num2
         return jsonify({"operation": "subtraction", "result": result}), 200
-    except Exception:
-        return jsonify({"error": "Invalid input. Please provide valid JSON with 'num1' and 'num2'."}), 400
+    except (KeyError, TypeError, ValueError):
+        return jsonify({"error": "Invalid input. Please provide 'num1' and 'num2' as numbers."}), 400
 
-
-@app.route("/multiply", methods=["POST"])
-def multiply():
+@app.route("/multiplication", methods=["POST"])
+def multiplication():
     try:
         data = request.get_json()
         num1 = float(data["num1"])
         num2 = float(data["num2"])
         result = num1 * num2
         return jsonify({"operation": "multiplication", "result": result}), 200
-    except Exception:
-        return jsonify({"error": "Invalid input. Please provide valid JSON with 'num1' and 'num2'."}), 400
+    except (KeyError, TypeError, ValueError):
+        return jsonify({"error": "Invalid input. Please provide 'num1' and 'num2' as numbers."}), 400
 
-
-@app.route("/divide", methods=["POST"])
-def divide():
+@app.route("/division", methods=["POST"])
+def division():
     try:
         data = request.get_json()
         num1 = float(data["num1"])
         num2 = float(data["num2"])
         if num2 == 0:
-            return jsonify({"error": "Division by zero is not allowed."}), 400
+            return jsonify({"error": "Cannot divide by zero"}), 400
         result = num1 / num2
         return jsonify({"operation": "division", "result": result}), 200
-    except Exception:
-        return jsonify({"error": "Invalid input. Please provide valid JSON with 'num1' and 'num2'."}), 400
+    except (KeyError, TypeError, ValueError):
+        return jsonify({"error": "Invalid input. Please provide 'num1' and 'num2' as numbers."}), 400
 
+@app.route("/modulus", methods=["POST"])
+def modulus():
+    try:
+        data = request.get_json()
+        num1 = float(data["num1"])
+        num2 = float(data["num2"])
+        if num2 == 0:
+            return jsonify({"error": "Cannot perform modulus by zero"}), 400
+        result = num1 % num2
+        return jsonify({"operation": "modulus", "result": result}), 200
+    except (KeyError, TypeError, ValueError):
+        return jsonify({"error": "Invalid input. Please provide 'num1' and 'num2' as numbers."}), 400
 
-@app.route("/square", methods=["POST"])
-def square():
+@app.route("/sqrt", methods=["POST"])
+def square_root():
     try:
         data = request.get_json()
         num = float(data["num"])
-        result = num ** 2
-        return jsonify({"operation": "square", "result": result}), 200
-    except Exception:
-        return jsonify({"error": "Invalid input. Please provide valid JSON with 'num'."}), 400
+        if num < 0:
+            return jsonify({"error": "Cannot calculate the square root of a negative number"}), 400
+        result = math.sqrt(num)
+        return jsonify({"operation": "square_root", "result": result}), 200
+    except (KeyError, TypeError, ValueError):
+        return jsonify({"error": "Invalid input. Please provide 'num' as a number."}), 400
 
+@app.route("/sin", methods=["POST"])
+def sine():
+    try:
+        data = request.get_json()
+        angle_rad = float(data["angle"])
+        result = math.sin(angle_rad)
+        return jsonify({"operation": "sine", "input_unit": "radians", "result": result}), 200
+    except (KeyError, TypeError, ValueError):
+        return jsonify({"error": "Invalid input. Please provide 'angle' as a number."}), 400
+
+@app.route("/cos", methods=["POST"])
+def cosine():
+    try:
+        data = request.get_json()
+        angle_rad = float(data["angle"])
+        result = math.cos(angle_rad)
+        return jsonify({"operation": "cosine", "input_unit": "radians", "result": result}), 200
+    except (KeyError, TypeError, ValueError):
+        return jsonify({"error": "Invalid input. Please provide 'angle' as a number."}), 400
 
 @app.route("/", methods=["GET"])
 def home():
     return jsonify({
         "message": "Welcome to Simple Math API!",
-        "routes": {
-            "POST /add": "Add two numbers (num1, num2)",
-            "POST /subtract": "Subtract two numbers (num1, num2)",
-            "POST /multiply": "Multiply two numbers (num1, num2)",
-            "POST /divide": "Divide two numbers (num1, num2)",
-            "POST /square": "Square a single number (num)"
+        "endpoints": {
+            "POST /add": "Add two numbers. Body: {'num1': <float>, 'num2': <float>}",
+            "POST /subtract": "Subtract two numbers. Body: {'num1': <float>, 'num2': <float>}",
+            "POST /multiplication": "Multiply two numbers. Body: {'num1': <float>, 'num2': <float>}",
+            "POST /division": "Divide two numbers. Body: {'num1': <float>, 'num2': <float>}",
+            "POST /modulus": "Get the remainder of a division. Body: {'num1': <float>, 'num2': <float>}",
+            "POST /sqrt": "Get the square root of a number. Body: {'num': <float>}",
+            "POST /sin": "Get the sine of an angle in radians. Body: {'angle': <float>}",
+            "POST /cos": "Get the cosine of an angle in radians. Body: {'angle': <float>}"
         }
     })
 
